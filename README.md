@@ -1,5 +1,5 @@
 # Garbage-Collectyour
-As the name implies, this is not a Garbage Collector, but it also isn't far from working towards the same end. The Garbage Collector _header only_ library, aims to create a wrapper around C's _malloc_ and _free_ which would keep track of memory allocations, and provide the user with a detailed rundown of memory issues when the program exits.
+As the name implies, this is not a Garbage Collector, but it also isn't far from working towards the same end. The Garbage Collector _header only_ library, aims to create a wrapper around C's _malloc_ and _free_ which would keep track of memory allocations, and provide the user with a detailed rundown of memory issues when the program exits, hence Garbage CollectYOUR.
 
 ## Inspiration
 Felt like it'd be interesting to learn how Valgrind's memcheck works under the hood. A short research taught me that Valgrind somehow takes the compiled code, disassembles adds its own shenanigans and recompiles it, then allocates whatever memory the user allocates a second time in order to keep track of it.
