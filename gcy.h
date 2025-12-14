@@ -22,6 +22,7 @@ typedef struct GCY_AllocationsList
 void* gcy_malloc(size_t size, char* file, int line);
 void gcy_free(void* ptr);
 void gcy_print_allocations();
+GCY_AllocationsList* gcy_debug_get_allocations();
 
 #define GCY_MALLOC(size) gcy_malloc((size), __FILE__, __LINE__)
 #define GCY_FREE(ptr) gcy_free((ptr))
@@ -89,22 +90,35 @@ void* gcy_malloc(size_t size, char* file, int line)
 
     return ptr;
 }
+void gcy_free_allocation_node(GCY_AllocationsList* node)
+{
+    free(node->alloc->ptr);
+    free(node);
+}
+
 void gcy_free(void* ptr)
 {
     if (ptr == NULL)
     {
         return;
     }
-
     GCY_AllocationsList* temp = allocList;
+    if (temp->alloc->ptr == ptr)
+    {
+        allocList = allocList->next;
+        gcy_free_allocation_node(temp);
+        return;
+    }
     while (temp != NULL)
     {
         if (temp->next->alloc->ptr == ptr)
         {
             GCY_AllocationsList* ptr_node = temp->next;
-            free(ptr_node->alloc)
             temp->next = temp->next->next;
+            gcy_free_allocation_node(ptr_node);
+            return;
         }
+        temp = temp->next;
     }
 }
 void gcy_print_allocation(const GCY_Allocation* allocation)
@@ -121,6 +135,10 @@ void gcy_print_allocations()
         temp = temp->next;
     }
     printf("=============================================\n");
+}
+GCY_AllocationsList* gcy_debug_get_allocations()
+{
+    return allocList;
 }
 
 #endif /* GCY_IMPLEMENTATION */
