@@ -39,6 +39,7 @@ GCY_AllocationsList* gcy_debug_get_allocations();
 
 GCY_AllocationsList* allocList = NULL;
 GCY_AllocationsList* last_allocation = NULL;
+size_t allocsCount = 0;
 
 void* gcy_malloc(size_t size, char* file, int line)
 {
@@ -88,6 +89,7 @@ void* gcy_malloc(size_t size, char* file, int line)
         last_allocation = root_new;
     }
 
+    ++allocsCount;
     return ptr;
 }
 void gcy_free_allocation_node(GCY_AllocationsList* node)
@@ -107,6 +109,7 @@ void gcy_free(void* ptr)
     {
         allocList = allocList->next;
         gcy_free_allocation_node(temp);
+        --allocsCount;
         return;
     }
     while (temp != NULL)
@@ -116,6 +119,7 @@ void gcy_free(void* ptr)
             GCY_AllocationsList* ptr_node = temp->next;
             temp->next = temp->next->next;
             gcy_free_allocation_node(ptr_node);
+            --allocsCount;
             return;
         }
         temp = temp->next;
