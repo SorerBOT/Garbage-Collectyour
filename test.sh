@@ -1,5 +1,5 @@
 #!/bin/bash
 
 mkdir -p ./bin
-gcc gcy_example.c -o ./bin/test
+gcc ./tests/test.c -o ./bin/test
 ./bin/test

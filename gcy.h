@@ -23,6 +23,7 @@ void* gcy_malloc(size_t size, char* file, int line);
 void gcy_free(void* ptr);
 void gcy_print_allocations();
 GCY_AllocationsList* gcy_debug_get_allocations();
+size_t gcy_debug_get_allocations_count();
 
 #define GCY_MALLOC(size) gcy_malloc((size), __FILE__, __LINE__)
 #define GCY_FREE(ptr) gcy_free((ptr))
@@ -151,6 +152,10 @@ void gcy_print_allocations()
 GCY_AllocationsList* gcy_debug_get_allocations()
 {
     return allocList;
+}
+size_t gcy_debug_get_allocations_count()
+{
+    return allocsCount;
 }
 
 #endif /* GCY_IMPLEMENTATION */

@@ -21,4 +21,10 @@ int main()
     GCY_FREE(ptr);
     GCY_FREE(ptr_1);
     GCY_FREE(ptr_2);
+    GCY_FREE(ptr_3);
+    GCY_FREE(ptr_4);
+    GCY_FREE(ptr_5);
+    GCY_FREE(ptr_6);
+    GCY_FREE(ptr_7);
+    GCY_FREE(ptr_8);
 }
