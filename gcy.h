@@ -28,23 +28,24 @@
 #include <stdlib.h>
 #ifdef GCY_MODE
 
+typedef struct _GCY_linked_list
+{
+    struct _GCY_linked_list* next_node;
+} GCY_linked_list_t;
+
 typedef struct
 {
+    GCY_linked_list_t list_data;
     size_t size;
     char* file;
     int line;
     void* ptr;
 } GCY_Allocation;
-typedef struct GCY_AllocationsList
-{
-    GCY_Allocation* alloc;
-    struct GCY_AllocationsList* next;
-} GCY_AllocationsList;
 
 void* gcy_malloc(size_t size, char* file, int line);
 void gcy_free(void* ptr);
 void gcy_print_allocations();
-GCY_AllocationsList* gcy_debug_get_allocations();
+GCY_Allocation* gcy_debug_get_allocations();
 size_t gcy_debug_get_allocations_count();
 
 #define GCY_MALLOC(size) gcy_malloc((size), __FILE__, __LINE__)
@@ -60,8 +61,8 @@ size_t gcy_debug_get_allocations_count();
 #include <stdlib.h>
 
 
-GCY_AllocationsList* allocList = NULL;
-GCY_AllocationsList* last_allocation = NULL;
+GCY_Allocation* allocList = NULL;
+GCY_Allocation* last_allocation = NULL;
 size_t allocsCount = 0;
 
 void* gcy_malloc(size_t size, char* file, int line)
@@ -73,27 +74,24 @@ void* gcy_malloc(size_t size, char* file, int line)
         exit(EXIT_FAILURE);
     }
 
-    GCY_AllocationsList* root_new = (GCY_AllocationsList*)malloc(sizeof(GCY_AllocationsList));
+    GCY_Allocation* root_new = malloc(sizeof(GCY_Allocation));
     if (root_new == NULL)
     {
         fprintf(stderr, "Error: malloc in Garbage-Collectyour library allocation");
         exit(EXIT_FAILURE);
     }
 
-    root_new->alloc = (GCY_Allocation*)malloc(sizeof(GCY_Allocation));
-    if (root_new->alloc == NULL)
+    *root_new = (GCY_Allocation)
     {
-        fprintf(stderr, "Error: malloc in Garbage-Collectyour library allocation");
-        exit(EXIT_FAILURE);
-    }
-    *root_new->alloc = (GCY_Allocation)
-    {
+        .list_data = (GCY_linked_list_t)
+        {
+            .next_node = NULL
+        },
         .size = size,
         .file = file,
         .line = line,
         .ptr  = ptr
     };
-    root_new->next = NULL;
 
     if (last_allocation == NULL) /* This implies that allocList is also NULL */
     {
@@ -108,16 +106,17 @@ void* gcy_malloc(size_t size, char* file, int line)
     }
     else
     {
-        last_allocation->next = root_new;
+        last_allocation->list_data.next_node = (GCY_linked_list_t*) root_new;
         last_allocation = root_new;
     }
 
     ++allocsCount;
     return ptr;
 }
-void gcy_free_allocation_node(GCY_AllocationsList* node)
+
+void gcy_free_allocation_node(GCY_Allocation* node)
 {
-    free(node->alloc->ptr);
+    free(node->ptr);
     free(node);
 }
 
@@ -127,25 +126,25 @@ void gcy_free(void* ptr)
     {
         return;
     }
-    GCY_AllocationsList* temp = allocList;
-    if (temp->alloc->ptr == ptr)
+    GCY_Allocation* temp = allocList;
+    if (temp->ptr == ptr)
     {
-        allocList = allocList->next;
+        allocList = (GCY_Allocation*) allocList->list_data.next_node;
         gcy_free_allocation_node(temp);
         --allocsCount;
         return;
     }
     while (temp != NULL)
     {
-        if (temp->next->alloc->ptr == ptr)
+        GCY_Allocation* next_node = (GCY_Allocation*) temp->list_data.next_node;
+        if (next_node->ptr == ptr)
         {
-            GCY_AllocationsList* ptr_node = temp->next;
-            temp->next = temp->next->next;
-            gcy_free_allocation_node(ptr_node);
+            temp->list_data.next_node = next_node->list_data.next_node;
+            gcy_free_allocation_node(next_node);
             --allocsCount;
             return;
         }
-        temp = temp->next;
+        temp = next_node;
     }
 }
 void gcy_print_allocation(const GCY_Allocation* allocation)
@@ -163,18 +162,20 @@ void gcy_print_allocations()
     {
         printf("No garbage to collect.\n");
     }
-    GCY_AllocationsList* temp = allocList;
+    GCY_Allocation* temp = allocList;
     while (temp != NULL)
     {
-        gcy_print_allocation(temp->alloc);
-        temp = temp->next;
+        gcy_print_allocation(temp);
+        temp = (GCY_Allocation*) temp->list_data.next_node;
     }
     printf("=============================================\n");
 }
-GCY_AllocationsList* gcy_debug_get_allocations()
+
+GCY_Allocation* gcy_debug_get_allocations()
 {
     return allocList;
 }
+
 size_t gcy_debug_get_allocations_count()
 {
     return allocsCount;
