@@ -2,7 +2,7 @@
 #include <stdio.h>
 #define GCY_MODE 1
 #define GCY_IMPLEMENTATION 1
-#include "../lib/gcy.h"
+#include "../src/gcy.h"
 #include "../external/cunit.h"
 
 CUNIT_TEST(test_single)
