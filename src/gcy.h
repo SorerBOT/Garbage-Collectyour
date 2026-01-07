@@ -151,7 +151,7 @@ void gcy_free(void* ptr)
         return;
     }
     GCY_Allocation* temp = allocList;
-    if (temp->ptr == ptr)
+    if (temp->ptr != NULL && temp->ptr == ptr)
     {
         allocList = (GCY_Allocation*) allocList->list_data.next_node;
         gcy_free_allocation_node(temp);
