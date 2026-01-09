@@ -108,6 +108,9 @@ static void gcy__internal_print_overview()
     printf("=====================================\n");
     printf("GCY Overview\n");
 
+    size_t total_leaks = 0;
+    size_t total_leaks_bytes = 0;
+
     for (size_t i = 0; i < profiler->length; ++i)
     {
         GCY_Event event = profiler->events[i];
@@ -130,12 +133,14 @@ static void gcy__internal_print_overview()
             }
             if (!is_freed)
             {
+                ++total_leaks;
+                total_leaks_bytes += event.size;
                 printf("File: %s, line: %d, size: %lu, address: %p\n", event.file, event.line, event.size, event.ptr);
             }
         }
 
     }
-
+    printf("Leaked a total of %lu bytes in %lu allocations.\n", total_leaks_bytes, total_leaks);
     printf("=====================================\n");
 }
 
