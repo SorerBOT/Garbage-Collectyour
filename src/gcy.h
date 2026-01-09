@@ -30,9 +30,9 @@
 
 typedef enum
 {
-    GCY_ALLOC,
-    GCY_FREE
-} GCY_Event;
+    GCY_EVENT_ALLOC,
+    GCY_EVENT_FREE
+} GCY_Event_Type;
 
 typedef struct
 {
@@ -40,25 +40,27 @@ typedef struct
     const char* file;
     int line;
     void* ptr;
-    GCY_Event event;
-} GCY_Allocation;
+    GCY_Event_Type event_type;
+} GCY_Event;
 
 typedef struct
 {
     volatile size_t length;
-    GCY_Allocation allocations[];
+    GCY_Event events[];
 } GCY_Profiler;
 
 void* gcy_malloc(size_t size, const char* file, int line);
 void* gcy_calloc(size_t count, size_t size, const char* file, int line);
 void gcy_free(void* ptr);
 void gcy_print_allocations();
-GCY_Allocation* gcy_debug_get_allocations();
+GCY_Event* gcy_debug_get_allocations();
 size_t gcy_debug_get_allocations_count();
 
 #define GCY_MALLOC(size) gcy_malloc((size), __FILE__, __LINE__)
 #define GCY_CALLOC(count, size) gcy_calloc((count), (size), __FILE__, __LINE__)
 #define GCY_FREE(ptr) gcy_free((ptr))
+
+
 #else /* GCY_MODE */
 #define GCY_MALLOC(size) malloc((size))
 #define GCY_FREE(ptr) free((ptr))
@@ -69,6 +71,7 @@ size_t gcy_debug_get_allocations_count();
 
 #include <sys/mman.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #define GCY_KILO 1024
 #define GCY_MEGA (GCY_KILO * 1024)
@@ -101,13 +104,36 @@ static void gcy__internal_init_profiler()
 __attribute__((destructor))
 static void gcy__internal_print_overview()
 {
+
     printf("=====================================\n");
     printf("GCY Overview\n");
 
     for (size_t i = 0; i < profiler->length; ++i)
     {
-        GCY_Allocation alloc = profiler->allocations[i];
-        printf("File: %s, line: %d, size: %lu, address: %p\n", alloc.file, alloc.line, alloc.size, alloc.ptr);
+        GCY_Event event = profiler->events[i];
+
+        if (event.event_type == GCY_EVENT_ALLOC)
+        {
+            bool is_freed = false;
+            for (size_t j = i + 1; j < profiler->length; ++j)
+            {
+                GCY_Event current_event = profiler->events[j];
+                if (event.ptr != current_event.ptr)
+                {
+                    continue;
+                }
+
+                if (current_event.event_type == GCY_EVENT_FREE)
+                {
+                    is_freed = true;
+                }
+            }
+            if (!is_freed)
+            {
+                printf("File: %s, line: %d, size: %lu, address: %p\n", event.file, event.line, event.size, event.ptr);
+            }
+        }
+
     }
 
     printf("=====================================\n");
@@ -124,20 +150,34 @@ void* gcy_malloc(size_t size, const char* file, int line)
         exit(EXIT_FAILURE);
     }
 
-    GCY_Allocation allocation =
+    GCY_Event allocation =
     {
         .ptr    = ptr,
         .size   = size,
-        .event  = GCY_ALLOC,
+        .event_type  = GCY_EVENT_ALLOC,
         .file   = file,
         .line   = line
     };
 
     size_t old_length = __sync_fetch_and_add(&profiler->length, 1);
-    profiler->allocations[old_length] = allocation;
+    profiler->events[old_length] = allocation;
 
     return ptr;
 }
 
-#endif /* GCY_IMPLEMENTATION */
+void gcy_free(void* ptr)
+{
+    free(ptr);
 
+    GCY_Event event =
+    {
+        .ptr         = ptr,
+        .event_type  = GCY_EVENT_FREE,
+    };
+
+    size_t old_length = __sync_fetch_and_add(&profiler->length, 1);
+    profiler->events[old_length] = event;
+}
+
+
+#endif /* GCY_IMPLEMENTATION */
