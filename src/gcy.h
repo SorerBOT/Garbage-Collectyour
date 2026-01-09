@@ -133,13 +133,11 @@ void* gcy_malloc(size_t size, const char* file, int line)
         .line   = line
     };
 
-    profiler->allocations[profiler->length] = allocation;
-    profiler->length++; // this should be refactor-ed to an atomic operation
+    size_t old_length = __sync_fetch_and_add(&profiler->length, 1);
+    profiler->allocations[old_length] = allocation;
 
     return ptr;
 }
-
-
 
 #endif /* GCY_IMPLEMENTATION */
 
