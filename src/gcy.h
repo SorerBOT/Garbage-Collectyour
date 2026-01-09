@@ -47,6 +47,7 @@ typedef struct
 typedef struct
 {
     volatile size_t length;
+    pid_t original_process_id;
     GCY_Event events[];
 } GCY_Profiler;
 
@@ -73,12 +74,12 @@ size_t gcy_debug_get_allocations_count();
 #include <sys/mman.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #define GCY_KILO 1024
 #define GCY_MEGA (GCY_KILO * 1024)
 
-GCY_Profiler* profiler = NULL;
-
+static GCY_Profiler* profiler = NULL;
 static int gcy__internal_event_cmp(const void* first_event, const void* second_event);
 static void gcy__internal_init_profiler();
 static void gcy__internal_print_overview();
@@ -104,6 +105,11 @@ static int gcy__internal_event_cmp(const void* first, const void* second)
 __attribute__((constructor))
 static void gcy__internal_init_profiler()
 {
+    if (profiler != NULL)
+    {
+        return;
+    }
+
     profiler = mmap(NULL, 32 * GCY_MEGA,
             PROT_READ | PROT_WRITE,
             MAP_ANON | MAP_SHARED,
@@ -117,13 +123,18 @@ static void gcy__internal_init_profiler()
 
     *profiler = (GCY_Profiler)
     {
-        .length = 0
+        .length = 0,
+        .original_process_id = getpid()
     };
 }
 
 __attribute__((destructor))
 static void gcy__internal_print_overview()
 {
+    if (getpid() != profiler->original_process_id)
+    {
+        return;
+    }
 
     printf("=====================================\n");
     printf("GCY Overview\n");
