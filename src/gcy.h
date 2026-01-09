@@ -39,7 +39,7 @@ typedef struct
     size_t size;
     const char* file;
     int line;
-    void* ptr;
+    const void* ptr;
     GCY_Event_Type event_type;
     size_t event_number;
 } GCY_Event;
@@ -83,6 +83,7 @@ static GCY_Profiler* profiler = NULL;
 static int gcy__internal_event_cmp(const void* first_event, const void* second_event);
 static void gcy__internal_init_profiler();
 static void gcy__internal_print_overview();
+static void gcy__internal_append_allocation_event(const void* ptr, size_t size, const char* file, int line);
 
 static int gcy__internal_event_cmp(const void* first, const void* second)
 {
@@ -174,16 +175,8 @@ static void gcy__internal_print_overview()
     printf("=====================================\n");
 }
 
-void* gcy_malloc(size_t size, const char* file, int line)
+static void gcy__internal_append_allocation_event(const void* ptr, size_t size, const char* file, int line)
 {
-    void* ptr = malloc(size);
-
-    if (ptr == NULL)
-    {
-        perror("GCY: failed to allocate memory for user.\n");
-        exit(EXIT_FAILURE);
-    }
-
     size_t old_length = __sync_fetch_and_add(&profiler->length, 1);
 
     GCY_Event event =
@@ -197,6 +190,32 @@ void* gcy_malloc(size_t size, const char* file, int line)
     };
 
     profiler->events[old_length] = event;
+}
+void* gcy_calloc(size_t count, size_t size, const char* file, int line)
+{
+    void* ptr = calloc(count, size);
+
+    if (ptr == NULL)
+    {
+        perror("GCY: failed to allocate memory for user.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    gcy__internal_append_allocation_event(ptr, size, file, line);
+
+    return ptr;
+}
+void* gcy_malloc(size_t size, const char* file, int line)
+{
+    void* ptr = malloc(size);
+
+    if (ptr == NULL)
+    {
+        perror("GCY: failed to allocate memory for user.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    gcy__internal_append_allocation_event(ptr, size, file, line);
 
     return ptr;
 }
