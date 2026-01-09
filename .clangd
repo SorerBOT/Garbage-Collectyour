@@ -1,5 +1,8 @@
 CompileFlags:
   Add: 
+    - -x
+    - c
+    - -std=c99
     - -DGCY_MODE
     - -DGCY_IMPLEMENTATION
     - -Iexternal
