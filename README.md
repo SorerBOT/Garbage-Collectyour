@@ -88,7 +88,7 @@ int main()
     GCY_FREE(ptr_8);
 }
 ```
-Garbage Collect-you will now inform you that that all allocations were free'd:
+Garbage Collect-you will now inform you, that all allocations were free'd:
 ```shell
 =============================================
 Garbage Collect-your Data:
