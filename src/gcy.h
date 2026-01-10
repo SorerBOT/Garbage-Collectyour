@@ -139,7 +139,7 @@ static void gcy__internal_print_overview()
     }
 
     printf("=====================================\n");
-    printf("GCY Overview\n");
+    printf("Garbage Collect-your Data:\n");
 
     size_t total_leaks = 0;
     size_t total_leaks_bytes = 0;
