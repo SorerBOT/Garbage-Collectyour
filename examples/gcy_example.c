@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-#define GCY_MODE 1
-#define GCY_IMPLEMENTATION 1
+#define GCY_MODE
+#define GCY_IMPLEMENTATION
 #include "../src/gcy.h"
 
 int main()
