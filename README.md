@@ -18,8 +18,8 @@ In the following code, the programmer (me) forgot to deallocate some memory.
 ```c
 #include <string.h>
 #include <stdio.h>
-#define GCY_MODE 1
-#define GCY_IMPLEMENTATION 1
+#define GCY_MODE
+#define GCY_IMPLEMENTATION
 #include "gcy.h"
 
 int main()
@@ -58,8 +58,8 @@ You now know exactly what memory you forgot to free. Say you fixed your code, to
 ```c
 #include <string.h>
 #include <stdio.h>
-#define GCY_MODE 1
-#define GCY_IMPLEMENTATION 1
+#define GCY_MODE
+#define GCY_IMPLEMENTATION
 #include "gcy.h"
 
 int main()
