@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-#define GCY_MODE 1
-#define GCY_IMPLEMENTATION 1
+#define GCY_MODE
+#define GCY_IMPLEMENTATION
 #include "../src/gcy.h"
 
 int main()
@@ -19,9 +19,21 @@ int main()
 
     if (process_id == 0)
     {
+        void* array[50];
         for (size_t i = 0; i < 50; ++i)
         {
-            GCY_MALLOC(i);
+            if (i % 2 == 0)
+            {
+                array[i] = GCY_MALLOC(i);
+            }
+            else
+            {
+                array[i] = GCY_CALLOC(i, 1);
+            }
+        }
+        for (size_t i = 0; i < 50; ++i)
+        {
+            GCY_FREE(array[i]);
         }
         exit(EXIT_SUCCESS);
     }

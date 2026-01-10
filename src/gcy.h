@@ -139,7 +139,7 @@ static void gcy__internal_print_overview()
     }
 
     printf("=====================================\n");
-    printf("GCY Overview\n");
+    printf("Garbage Collect-your Data:\n");
 
     size_t total_leaks = 0;
     size_t total_leaks_bytes = 0;
@@ -205,7 +205,7 @@ void* gcy_calloc(size_t count, size_t size, const char* file, int line)
         exit(EXIT_FAILURE);
     }
 
-    gcy__internal_append_allocation_event(ptr, size, file, line);
+    gcy__internal_append_allocation_event(ptr, count * size, file, line);
 
     return ptr;
 }
