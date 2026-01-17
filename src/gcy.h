@@ -196,7 +196,7 @@ static void gcy__internal_append_allocation_event(const void* ptr, size_t size, 
         if (did_print_memory_exceeded_error == false)
         {
             did_print_memory_exceeded_error = true;
-            fprintf(stderr, "GCY: ran out of space. stopped reporting. you can set the amout of memory GCY uses by defining GCY_USER_PROFILER_SIZE in the same file you define GCY_IMPLEMENTATION. The default size is 1MB\n");
+            fprintf(stderr, "GCY: ran out of space. stopped reporting. you can set the amout of memory GCY uses by defining GCY_USER_PROFILER_SIZE in the same file you define GCY_IMPLEMENTATION. The default size is 1MB, and the size current used is %d bytes\n", GCY_PROFILER_SIZE);
         }
         return;
     }
