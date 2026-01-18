@@ -248,6 +248,16 @@ void gcy_free(void* ptr)
 {
     free(ptr);
 
+    if (profiler->length >= GCY_PROFILER_MAX_CAPACITY)
+    {
+        if (did_print_memory_exceeded_error == false)
+        {
+            did_print_memory_exceeded_error = true;
+            fprintf(stderr, "GCY: ran out of space. stopped reporting. you can set the amout of memory GCY uses by defining GCY_USER_PROFILER_SIZE in the same file you define GCY_IMPLEMENTATION. The default size is 1MB, and the size current used is %d bytes\n", GCY_PROFILER_SIZE);
+        }
+        return;
+    }
+
     size_t old_length = __sync_fetch_and_add(&profiler->length, 1);
 
     GCY_Event event =
